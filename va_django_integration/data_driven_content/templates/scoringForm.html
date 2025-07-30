@@ -18,7 +18,7 @@
 
 <script>
   // Retrieve data from Django context
-  const varInfo = {{ var_info }}
+  const varInfo = {{ var_info | safe}}
 
   // Create a form element based on the variable information
   const createFormElement = (info, value) => {
