@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="text-center bg-primary text-white px-2 pt-0">Best Price Calculator</h2>
+
+<div class="container">
+  <form class="form-inline">
+    {% csrf_token %}
+    <div class="col" id="formContent"></div>
+  </form>
+  <div class="d-flex justify-content-center py-5">
+    <button id="evaluateBtn" class="btn btn-primary">Evaluate</button>
+  </div>
+
+  <div class="col0" id="results"></div>
+
+</div>
+
+<script>
+  // Retrieve data from Django context
+  const varInfo = {{ var_info| safe }}
+
+  // Create a form element based on the variable information
+  const createFormElement = (info, value) => {
+    const divElement = document.createElement("div")
+    divElement.className = "row mb-3"
+    const labelElement = document.createElement("label")
+    labelElement.className = "col-sm-3 col-form-label"
+    labelElement.htmlFor = info.name
+    labelElement.textContent = info.label
+    divElement.appendChild(labelElement)
+    const formElement = document.createElement("input")
+    formElement.name = info.label
+    formElement.id = info.name
+    formElement.type = info.type === "number" ? "number" : "text"
+    formElement.className = "form-control"
+    formElement.required = true
+    formElement.readOnly = true
+    formElement.value = value
+    const inputGroup = document.createElement("div")
+    inputGroup.className = "col-sm-9"
+    inputGroup.appendChild(formElement)
+    divElement.appendChild(inputGroup)
+    return divElement
+  }
+
+  // Function to send messages to the parent window
+  const sendMessage = (message) => {
+    window.parent.postMessage(message, "*")
+  }
+
+  // Retrieve data and begin processing
+  const onMessage = async (event) => {
+    // Check if the event data is valid
+    if (event && event.data) {
+      document.getElementById("results").replaceChildren()
+      const rows = event.data.data
+      const columns = event.data.columns
+
+      // Check if needed columns are present
+      const availableColumns = columns.map(column => column.label)
+      const missingColumns = varInfo.filter(variable => variable.score && !availableColumns.includes(variable.label))
+
+      // Send message if needed columns are missing
+      if (missingColumns.length > 0) {
+        const message = {
+          resultName: event.data.resultName,
+          message: "Missing columns: " + missingColumns.map(column => column.label).join(", ")
+        }
+        sendMessage(message)
+        return
+      }
+      // Create the form content
+      const formChildren = []
+      await columns.forEach((column, index) => {
+        const formElement = createFormElement(column, rows[0][index])
+        if (!varInfo.filter(variable => variable.display).map(variable => variable.label).includes(column.label)) {
+          formElement.classList.add("d-none")
+        }
+        formChildren.push(formElement)
+      })
+      document.getElementById("formContent").replaceChildren(...formChildren)
+    }
+  }
+
+  // Function to send data to the server for scoring
+  const scoreData = async (data) => {
+    const results = await fetch("score", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    })
+    const resultData = await results.json()
+    return resultData
+  }
+
+  // Add event listener for messages from the parent window
+  // This is necessary for the iframe to receive messages from the parent window
+  // This is used to pass data from the parent window to the iframe
+  if (window.addEventListener) {
+    // For standards-compliant web browsers
+    window.addEventListener("message", onMessage, false)
+  } else {
+    window.attachEvent("onmessage", onMessage)
+  }
+
+  // Add event listener for the evaluate button
+  // This is used to handle the click event on the evaluate button
+  document.getElementById("evaluateBtn").addEventListener("click", async () => {
+    // Disable the button to prevent multiple clicks
+    const btn = event.target
+    btn.disabled = true
+    // Collect form data and send it to the server for scoring
+    const formData = new FormData(document.querySelector("form"))
+    const data = {}
+    const scoringVars = await varInfo.filter(variable => variable.score).map(variable => variable.label)
+    formData.forEach((value, key) => {
+      if (scoringVars.includes(key)) {
+        data[key] = value
+      }
+    })
+    // Send the data to the server for scoring
+    const resultData = await scoreData(data)
+    const resultInfo = {
+      label: resultData.label,
+      type: "number",
+      name: resultData.label,
+    }
+    document.getElementById("results").replaceChildren(createFormElement(resultInfo, Object.values(resultData.data)[0].toFixed(2)))
+    // Enable the button after processing
+    btn.disabled = false
+  })
+
+</script>
+{% endblock content %}

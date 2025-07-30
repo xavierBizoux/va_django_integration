@@ -1,0 +1,78 @@
+VAR_INFO = {
+    "cars-price-estimation": {
+        "vars": [
+            {
+                "name": "Make",
+                "label": "Make",
+                "type": "string",
+                "display": 1,
+                "score": 0,
+            },
+            {
+                "name": "Model",
+                "label": "Model",
+                "type": "string",
+                "display": 1,
+                "score": 0,
+            },
+            {
+                "name": "Type",
+                "label": "Type",
+                "type": "string",
+                "display": 1,
+                "score": 0,
+            },
+            {
+                "name": "MSRP",
+                "label": "MSRP",
+                "type": "number",
+                "display": 1,
+                "score": 0,
+            },
+            {
+                "name": "DriveTrain",
+                "label": "DriveTrain",
+                "type": "string",
+                "display": 0,
+                "score": 1,
+            },
+            {
+                "name": "Cylinders",
+                "label": "Cylinders",
+                "type": "number",
+                "display": 0,
+                "score": 1,
+            },
+            {
+                "name": "EngineSize",
+                "label": "Engine Size (L)",
+                "type": "number",
+                "display": 0,
+                "score": 1,
+            },
+            {
+                "name": "Horsepower",
+                "label": "Horsepower",
+                "type": "number",
+                "display": 0,
+                "score": 1,
+            },
+            {
+                "name": "MPG_City",
+                "label": "MPG (City)",
+                "type": "number",
+                "display": 0,
+                "score": 1,
+            },
+            {
+                "name": "MPG_Highway",
+                "label": "MPG (Highway)",
+                "type": "number",
+                "display": 0,
+                "score": 1,
+            },
+        ],
+        "published_model_name": "cars_price_estimation",
+        "output_label": "Best price",
+    },
+}

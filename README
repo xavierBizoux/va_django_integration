@@ -1,0 +1,5 @@
+## Run server on HTTPS
+
+# Based on instructions in https://timonweb.com/django/https-django-development-server-ssl-certificate/
+
+python3 manage.py runserver_plus 3000 --cert-file /Users/sbxxab/.certs/localhost-cert.pem --key-file /Users/sbxxab/.certs/localhost-key.pem
