@@ -19,6 +19,7 @@
 <script>
   // Retrieve data from Django context
   const varInfo = {{ var_info | safe}}
+  const app_name = "{{ app_name }}"
 
   // Create a form element based on the variable information
   const createFormElement = (info, value) => {
@@ -86,7 +87,8 @@
 
   // Function to send data to the server for scoring
   const scoreData = async (data) => {
-    const results = await fetch("score", {
+    data.app_name = app_name
+    const results = await fetch(`score`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

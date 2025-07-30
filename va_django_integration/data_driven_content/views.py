@@ -16,8 +16,10 @@ def index(request):
     """
     Render the index page for the data-driven content app.
     """
+    app_name = request.GET.get("app_name")
     context = {
-        "var_info": VAR_INFO["cars-price-estimation"]["vars"],
+        "var_info": VAR_INFO[app_name]["vars"],
+        "app_name": app_name,
     }
 
     return render(request, "scoringForm.html", context)
@@ -28,11 +30,15 @@ def score(request):
     """
     Render the score page for the data-driven content app.
     """
-    var_info = VAR_INFO["cars-price-estimation"]["vars"]
     if request.method == "POST":
         # Handle form submission
         try:
             data = json.loads(request.body)
+            app_name = data["app_name"]
+            data.pop("app_name")
+            var_info = VAR_INFO[app_name]["vars"]
+            module = VAR_INFO[app_name]["published_model_name"]
+            output_label = VAR_INFO[app_name]["output_label"]
             clean_data = {}
 
             for key, value in data.items():
@@ -41,25 +47,16 @@ def score(request):
                     value = float(value)
                 clean_data[element["name"]] = value
 
-            scoring_results = score_data(clean_data, "cars_price_estimation")
+            scoring_results = score_data(clean_data, module)
             return JsonResponse(
                 {
                     "status": "success",
                     "data": scoring_results,
-                    "label": VAR_INFO["cars-price-estimation"]["output_label"],
+                    "label": output_label,
                 }
             )
         except json.JSONDecodeError:
             response = {"status": "error", "message": "Invalid JSON data"}
-        # scoring_results = score_data(request, "cars_price_estimation")
-        # print("Scoring results:", scoring_results)
-        # # Here you would typically process the data, e.g., save it to the database or perform calculations
-        # return JsonResponse(
-        #     {
-        #         "best_price": 25000,  # Example static value, replace with actual logic
-        #         "label": "Best price",
-        #     }
-        # )
         return None
     else:
         return JsonResponse(
