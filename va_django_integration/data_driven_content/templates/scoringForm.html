@@ -18,7 +18,7 @@
 
 <script>
   // Retrieve data from Django context
-  const varInfo = {{ var_info| safe }}
+  const varInfo = {{ var_info }}
 
   // Create a form element based on the variable information
   const createFormElement = (info, value) => {
@@ -57,11 +57,12 @@
       const rows = event.data.data
       const columns = event.data.columns
 
-      // Check if needed columns are present
+      // Generate list of columns available, and columns to display
       const availableColumns = columns.map(column => column.label)
-      const missingColumns = varInfo.filter(variable => variable.score && !availableColumns.includes(variable.label))
+      const displayColumns = varInfo.filter(variable => variable.display).map(variable => variable.label)
 
       // Send message if needed columns are missing
+      const missingColumns = varInfo.filter(variable => variable.score && !availableColumns.includes(variable.label))
       if (missingColumns.length > 0) {
         const message = {
           resultName: event.data.resultName,
@@ -74,7 +75,7 @@
       const formChildren = []
       await columns.forEach((column, index) => {
         const formElement = createFormElement(column, rows[0][index])
-        if (!varInfo.filter(variable => variable.display).map(variable => variable.label).includes(column.label)) {
+        if (!displayColumns.includes(column.label)) {
           formElement.classList.add("d-none")
         }
         formChildren.push(formElement)
@@ -115,20 +116,22 @@
     // Collect form data and send it to the server for scoring
     const formData = new FormData(document.querySelector("form"))
     const data = {}
-    const scoringVars = await varInfo.filter(variable => variable.score).map(variable => variable.label)
+    const scoringColumns = varInfo.filter(variable => variable.score).map(variable => variable.label)
     formData.forEach((value, key) => {
-      if (scoringVars.includes(key)) {
+      if (scoringColumns.includes(key)) {
         data[key] = value
       }
     })
     // Send the data to the server for scoring
     const resultData = await scoreData(data)
+    // Display the result
     const resultInfo = {
       label: resultData.label,
       type: "number",
       name: resultData.label,
     }
-    document.getElementById("results").replaceChildren(createFormElement(resultInfo, Object.values(resultData.data)[0].toFixed(2)))
+    const resultElement = createFormElement(resultInfo, Object.values(resultData.data)[0].toFixed(2))
+    document.getElementById("results").replaceChildren(resultElement)
     // Enable the button after processing
     btn.disabled = false
   })
