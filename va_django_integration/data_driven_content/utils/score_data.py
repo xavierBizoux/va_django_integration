@@ -13,8 +13,6 @@ USERNAME = str(os.getenv("USERNAME"))
 PASSWORD = str(os.getenv("PASSWORD"))
 CERTIFICATE = str(os.getenv("CERTIFICATE"))
 
-print(SERVER, USERNAME, PASSWORD, CERTIFICATE)
-
 
 def score_data(data, module_name):
     with Session(SERVER, USERNAME, PASSWORD, verify_ssl=CERTIFICATE) as session:
